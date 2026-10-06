@@ -100,7 +100,26 @@ fuzzspec run \
 
 # 3. Deterministic Replay Mode (Zero AI Cost)
 fuzzspec replay --target http://localhost:8080 --file ./results.json
+
+# 4. Validate Spec Readiness
+fuzzspec validate --spec ./openapi.yaml
+
+# 5. Generate Vectors Offline (Dry Run)
+fuzzspec generate --spec ./openapi.yaml
 ```
+
+#### 📋 CLI Command & Flags Reference
+
+| Command | Description | Key Flags / Options |
+|---|---|---|
+| `fuzzspec validate` | Parses and validates OpenAPI 3.0/3.1 (YAML/JSON) specification readiness. | `--spec <file_or_url>` |
+| `fuzzspec generate` | Generates boundary, heuristic & adversarial test vectors without making HTTP calls (dry-run). | `--spec <file>`, `--no-ai`, `--ai-provider` |
+| `fuzzspec run` | Executes concurrent HTTP fuzzing with QA oracles, rate limiting, and multi-format reports. | `--target <url>`, `--spec <file>`, `--auto-discover`, `--concurrency <N>`, `--rps <N>`, `--safe-mode`, `--output-sarif`, `--output-md`, `--output-junit`, `--output-json` |
+| `fuzzspec replay` | Deterministically re-executes failing anomaly payloads to verify bug fixes (**0 AI token cost**). | `--target <url>`, `--file <report.json>`, `--vector <id>` |
+| `fuzzspec init` | Automatically scaffolds AI agent rules and skill adapters into the repository. | `--ide cursor,claude,copilot,windsurf,antigravity,cline,kiro` |
+| `fuzzspec --mcp` | Starts the Model Context Protocol (MCP) JSON-RPC 2.0 stdio server for AI IDEs. | `--mcp` |
+| `fuzzspec version` | Prints FuzzSpec version and build info. | `--version`, `-v` |
+
 
 ---
 

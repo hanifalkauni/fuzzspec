@@ -100,7 +100,26 @@ fuzzspec run \
 
 # 3. Mode Replay Deterministik (0 Biaya Token AI)
 fuzzspec replay --target http://localhost:8080 --file ./results.json
+
+# 4. Validasi Kesiapan Skema OpenAPI
+fuzzspec validate --spec ./openapi.yaml
+
+# 5. Generate Vektor Mutasi Offline (Dry Run)
+fuzzspec generate --spec ./openapi.yaml
 ```
+
+#### 📋 Referensi Perintah & Opsi Flag CLI
+
+| Perintah | Deskripsi | Opsi / Flag Utama |
+|---|---|---|
+| `fuzzspec validate` | Mem-parsing dan memvalidasi kesiapan spesifikasi OpenAPI 3.0/3.1 (YAML/JSON). | `--spec <file_or_url>` |
+| `fuzzspec generate` | Menghasilkan vektor mutasi boundary & adversarial tanpa mengirim request HTTP (dry-run). | `--spec <file>`, `--no-ai`, `--ai-provider` |
+| `fuzzspec run` | Menjalankan fuzzing HTTP concurrent dengan QA oracles, pembatas laju (rate limiter), dan laporan multi-format. | `--target <url>`, `--spec <file>`, `--auto-discover`, `--concurrency <N>`, `--rps <N>`, `--safe-mode`, `--output-sarif`, `--output-md`, `--output-junit`, `--output-json` |
+| `fuzzspec replay` | Menguji ulang payload anomali yang gagal secara deterministik (**0 biaya token AI**). | `--target <url>`, `--file <report.json>`, `--vector <id>` |
+| `fuzzspec init` | Menginjeksi aturan (*rules*) dan adapter skill AI agent ke repositori lokal. | `--ide cursor,claude,copilot,windsurf,antigravity,cline,kiro` |
+| `fuzzspec --mcp` | Menjalankan server stdio JSON-RPC 2.0 Model Context Protocol (MCP) untuk AI IDE. | `--mcp` |
+| `fuzzspec version` | Menampilkan versi rilis dan info build FuzzSpec. | `--version`, `-v` |
+
 
 ---
 

@@ -6,8 +6,9 @@
 *.dylib
 dist/
 build/
-fuzzspec
-fuzzspec-mcp
+/fuzzspec
+/fuzzspec-mcp
+
 
 
 # Environment & Credentials (CRITICAL SECURITY)
