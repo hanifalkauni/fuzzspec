@@ -1,0 +1,64 @@
+version: "1"
+
+# Target Server & Spec Ingestion
+target: "http://localhost:8000"
+spec: "./api/openapi.yaml" # or omit and enable auto_discover
+auto_discover: true        # automatically probes FastAPI (/openapi.json), Spring (/v3/api-docs), etc.
+
+execution:
+  concurrency: 15
+  rps: 50
+  timeout: "5s"
+  retries: 2
+  safe_mode: true          # true: only safe methods (GET, HEAD, OPTIONS); false: allow POST, PUT, DELETE
+
+authentication:
+  type: "bearer"
+  token_env: "API_TEST_TOKEN"
+  headers:
+    X-Tenant-ID: "qa-sandbox-01"
+
+filtering:
+  include_paths:
+    - "/v1/users/**"
+    - "/v1/orders/**"
+  exclude_paths:
+    - "/v1/admin/purge"
+    - "/v1/auth/logout"
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+
+ai:
+  enabled: true
+  provider: "gemini"       # gemini | openai | anthropic | local
+  model: "gemini-1.5-flash"
+  cache_vectors: true
+  cache_dir: ".fuzzspec-cache"
+
+oracles:
+  fail_on_5xx: true
+  fail_on_schema_drift: true
+  scan_info_leak: true
+  latency_threshold_ms: 3000
+
+# Custom Language / Framework Extension
+# Allows users to add support for any unlisted/proprietary language without modifying Go code.
+custom_languages:
+  - name: "elixir-phoenix"
+    display_name: "Elixir / Phoenix"
+    discovery_endpoints:
+      - "/api/openapi"
+      - "/swagger/doc.json"
+    stacktrace_patterns:
+      - '(?i)\*\*\s*\([a-zA-Z0-9\._]+Error\)'
+      - '(?i)\[error\]\s*GenServer\s+.*terminating'
+      - '(?i)Plug\.Conn\.WrapperError'
+    validation_error_signatures:
+      - '{"errors":\s*{'
+
+reporting:
+  terminal: true
+  markdown: "./test-results/summary.md"
+  sarif: "./test-results/findings.sarif"
+  junit: "./test-results/junit.xml"
+  json: "./test-results/full-report.json"
+  sanitize_pii: true       # masks tokens, passwords, and sensitive PII in exported reports

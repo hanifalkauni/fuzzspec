@@ -1,0 +1,32 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Node Express Sample API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/products": {
+      "post": {
+        "summary": "Create Product",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "price"],
+                "properties": {
+                  "title": { "type": "string" },
+                  "price": { "type": "number", "minimum": 0 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Product created" }
+        }
+      }
+    }
+  }
+}

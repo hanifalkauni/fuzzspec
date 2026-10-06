@@ -1,0 +1,56 @@
+version: 2
+project_name: fuzzspec
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: fuzzspec-cli
+    main: ./cmd/fuzzspec
+    binary: fuzzspec
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+  - id: fuzzspec-mcp
+    main: ./cmd/fuzzspec-mcp
+    binary: fuzzspec-mcp
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - README.id.md
+      - SECURITY.md
+      - LICENSE
+      - fuzzspec.example.yaml
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'

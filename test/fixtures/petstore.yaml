@@ -1,0 +1,146 @@
+openapi: "3.0.3"
+info:
+  title: Sample Petstore API
+  version: "1.0.0"
+  description: A sample Petstore OpenAPI spec for FuzzSpec unit testing.
+servers:
+  - url: http://localhost:8080/v1
+paths:
+  /pets:
+    get:
+      summary: List all pets
+      operationId: listPets
+      tags:
+        - pets
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at one time (max 100)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [available, pending, sold]
+      responses:
+        '200':
+          description: An array of pets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pet'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+    post:
+      summary: Create a pet
+      operationId: createPet
+      tags:
+        - pets
+      requestBody:
+        description: Pet to add to the store
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPet'
+      responses:
+        '201':
+          description: Pet created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+        '422':
+          description: Validation error
+        '500':
+          description: Unexpected error
+
+  /pets/{petId}:
+    parameters:
+      - name: petId
+        in: path
+        required: true
+        description: The id of the pet to retrieve
+        schema:
+          type: integer
+          minimum: 1
+    get:
+      summary: Info for a specific pet
+      operationId: showPetById
+      tags:
+        - pets
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+        '404':
+          description: Pet not found
+        '500':
+          description: Unexpected error
+    delete:
+      summary: Delete a pet
+      operationId: deletePet
+      tags:
+        - pets
+      responses:
+        '204':
+          description: Pet deleted
+        '404':
+          description: Pet not found
+
+components:
+  schemas:
+    Pet:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        tag:
+          type: string
+        price:
+          type: number
+          format: float
+          minimum: 0.01
+
+    NewPet:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 30
+        tag:
+          type: string
+        age:
+          type: integer
+          minimum: 0
+          maximum: 100
+        category:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string

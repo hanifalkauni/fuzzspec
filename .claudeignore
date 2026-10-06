@@ -1,0 +1,25 @@
+# Critical Credentials & Secrets - NEVER INDEX IN AI CONTEXT
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_rsa.pub
+id_ed25519
+credentials.json
+secrets.yaml
+secrets.json
+.aws/
+.ssh/
+
+# Build & Cache Artifacts
+node_modules/
+dist/
+bin/
+*.exe
+.fuzzspec-cache/
+coverage.out
+coverage.html

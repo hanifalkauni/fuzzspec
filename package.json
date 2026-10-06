@@ -1,0 +1,62 @@
+{
+  "name": "fuzzspec",
+  "version": "1.0.0",
+  "description": "Universal Spec-to-Contract AI Testing Harness, 500 Crash Preventer & Autonomous Self-Healing Skill Agent for Any IDE and Any Agent",
+  "type": "module",
+  "main": "bin/fuzzspec.js",
+  "bin": {
+    "fuzzspec": "./bin/fuzzspec.js",
+    "fuzzspec-mcp": "./bin/fuzzspec.js"
+  },
+  "files": [
+    "bin",
+    "adapters",
+    "skills",
+    "docs",
+    "SKILL.md",
+    "SECURITY.md",
+    "README.md",
+    "README.id.md",
+    "fuzzspec.example.yaml",
+    "action.yml",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hanifalkauni/fuzzspec.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hanifalkauni/fuzzspec/issues"
+  },
+  "homepage": "https://github.com/hanifalkauni/fuzzspec#readme",
+  "scripts": {
+    "start": "node bin/fuzzspec.js",
+    "mcp": "node bin/fuzzspec.js --mcp",
+    "init": "node bin/fuzzspec.js init"
+  },
+  "keywords": [
+    "fuzzing",
+    "openapi",
+    "swagger",
+    "contract-testing",
+    "api-testing",
+    "security-fuzzer",
+    "500-crash-prevention",
+    "ai-agent",
+    "antigravity",
+    "cursor",
+    "claude-code",
+    "windsurf",
+    "copilot",
+    "cline",
+    "kiro",
+    "mcp",
+    "model-context-protocol",
+    "self-healing"
+  ],
+  "author": "Hanif Al-Kauni",
+  "license": "Apache-2.0"
+}

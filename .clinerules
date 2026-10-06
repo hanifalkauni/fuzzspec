@@ -1,0 +1,66 @@
+# Cline Custom Rules: FuzzSpec QA & Contract Testing Protocol
+
+You are paired with **FuzzSpec**, an autonomous spec-to-contract QA testing harness, 500 crash preventer, and polyglot API security engineer.
+
+When developing, refactoring, testing, or reviewing backend REST endpoints across any programming language (Go, Python, TypeScript/Node, Java, PHP, Rust, C#/.NET, Ruby), you MUST enforce the **7 Pillars of Spec-to-Contract Fuzzing**.
+
+---
+
+## 🎯 The 7-Pillar Spec-to-Contract Protocol
+
+### 1. 📐 Schema Ingestion & Normalization
+- Ingest OpenAPI 3.0/3.1 (YAML/JSON) or auto-discover specs (`/openapi.json`, `/v3/api-docs`, `/api-json`, `/swagger/doc.json`, `/docs/api.json`).
+- Ensure all endpoint parameters (`path`, `query`, `header`, `body`) have documented constraints.
+
+### 2. ⚡ Hybrid Deterministic & AI Mutation Engine
+- **Boundary Value Analysis (BVA)**: Numeric `0`, `-1`, `1`, `min - 1`, `max + 1`, `INT32_MAX`, `INT64_MAX` (`9223372036854775907`), `1e308`, `NaN`, `Infinity`.
+- **Adversarial Injections**: SQLi (`' OR '1'='1`), NoSQLi (`{"$gt": ""}`), Null bytes (`\x00`), CRLF (`\r\n`), malformed dates (`2024-02-30`).
+- **AI Semantic Edge-Cases**: Token-minified prompt synthesis with local SHA-256 disk caching (`.fuzzspec-cache/`).
+
+### 3. 🚀 High-Throughput Worker Pool & Rate Limiter
+- Non-blocking concurrent goroutine worker pool (`--concurrency 10`).
+- Token-bucket rate limiter (`--rps 20`) to prevent accidental DoS against testing servers.
+- Safe Mode isolation: restrict to `GET`, `HEAD`, `OPTIONS` unless `safe_mode: false` is requested.
+
+### 4. 🔬 Multi-Layer Test Oracles & Polyglot Panic Scanner
+Evaluate every executed request across multi-layer assertion oracles:
+* **HTTP 500 Crash Oracle**: Treat unhandled 500/502/503/504 responses as **CRITICAL ANOMALIES**.
+* **Polyglot Stack Trace Scanner**: Detect leaked stack traces across Go (`panic:`), Python (`Traceback`), Node.js (`TypeError:`), Java (`NullPointerException`), PHP (`Fatal error:`), Rust (`panicked at`), C# (`Exception:`), Ruby (`Error:`).
+* **Contract Drift Oracle**: Detect HTTP 200 responses that violate documented schema contracts.
+* **Latency SLO Oracle**: Detect slow responses exceeding threshold (e.g. >3000ms).
+
+### 5. 🛡️ PII Sanitization & Enterprise Reporting
+- Redact authorization tokens, passwords, and sensitive identifiers.
+- Export in SARIF v2.1.0 (`--output-sarif`), JUnit XML (`--output-junit`), Markdown PR comment (`--output-md`), or diagnostic JSON (`--output-json`).
+
+### 6. 🔄 Zero-Token Deterministic Replay Engine
+- Re-run failing payloads using `replay_anomaly` or `fuzzspec replay --file report.json --target <url>` without consuming extra LLM tokens.
+
+### 7. 🔁 The 4-Step Autonomous Self-Healing Workflow
+```
+[1. Inspect Spec] ──> [2. Fuzz Live Server] ──> [3. Detect 500 Panic]
+                                                          │
+                                                          ▼
+[Verify Resolved] <── [5. Replay Anomaly (0 AI)] <── [4. Patch Handler Code]
+```
+
+---
+
+## 🛠️ MCP Tools Reference
+
+* **`inspect_spec`**: Ingests OpenAPI spec and returns parameter schemas and response contracts.
+* **`fuzz_endpoint`**: Executes concurrent boundary, adversarial, and AI fuzzing against a live server.
+* **`replay_anomaly`**: Deterministically re-tests failing payloads to verify bug fixes (**0 AI token cost**).
+* **`scan_and_generate_spec`**: Scans codebase routes and scaffolds an OpenAPI 3.1 specification.
+
+---
+
+## 🛡️ Polyglot Remediation Guidelines
+
+| Anomaly Type | Root Cause | Remediation Strategy |
+|---|---|---|
+| **Nil / Null Pointer (500)** | Accessing nested key without null-check. | Add defensive nil-check; return HTTP `422 Unprocessable Entity` with JSON validation error. |
+| **Integer Overflow (500)** | Parsing values greater than `INT64_MAX` into numeric types. | Validate number string length / range before numeric conversion. Return `400 Bad Request`. |
+| **SQL/NoSQL Injection (500/Leak)** | Dynamic string concatenation in SQL or query builder. | Use parameterized queries / prepared statements. Ensure raw DB error messages are not exposed. |
+| **Date/UUID Parse Panic (500)** | Format parsing error on invalid dates (e.g. `2024-02-30`). | Catch parse errors in controller/DTO layer and return `400 Bad Request`. |
+| **Contract Drift (200 OK)** | Response fields differ from OpenAPI specification. | Align serializer/DTO attributes to match the OpenAPI contract definitions. |

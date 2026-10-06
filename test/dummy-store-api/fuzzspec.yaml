@@ -1,0 +1,31 @@
+version: "1"
+spec: "./test/dummy-store-api/openapi.yaml"
+target: "http://localhost:8989"
+auto_discover: false
+
+execution:
+  concurrency: 5
+  rps: 30
+  timeout: "5s"
+  retries: 1
+  safe_mode: false
+
+ai:
+  enabled: false # Test local heuristic mutator first
+  provider: "gemini"
+  model: "gemini-1.5-flash"
+  cache_vectors: true
+
+oracles:
+  fail_on_5xx: true
+  fail_on_schema_drift: true
+  scan_info_leak: true
+  latency_threshold_ms: 2000
+
+reporting:
+  terminal: true
+  markdown: "./fuzz-summary.md"
+  sarif: "./fuzz-results.sarif"
+  junit: "./fuzz-junit.xml"
+  json: "./fuzz-results.json"
+  sanitize_pii: true

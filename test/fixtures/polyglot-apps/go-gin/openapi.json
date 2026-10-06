@@ -1,0 +1,29 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Go Gin Sample API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/orders": {
+      "get": {
+        "summary": "Get orders list",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of orders"
+          }
+        }
+      }
+    }
+  }
+}

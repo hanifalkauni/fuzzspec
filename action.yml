@@ -1,0 +1,73 @@
+name: 'FuzzSpec Contract Testing & AI Security Fuzzing'
+description: 'Language-agnostic Spec-to-Contract AI Testing Harness and 500 crash preventer for OpenAPI REST APIs'
+author: 'FuzzSpec Team'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  spec:
+    description: 'Path or remote URL to OpenAPI 3.0/3.1 YAML/JSON specification'
+    required: false
+  target:
+    description: 'Target API base URL (e.g. http://localhost:8080)'
+    required: true
+  auto-discover:
+    description: 'Automatically probe and discover OpenAPI specification endpoint'
+    required: false
+    default: 'false'
+  concurrency:
+    description: 'Concurrent worker goroutines count'
+    required: false
+    default: '10'
+  rps:
+    description: 'Max requests per second rate limit'
+    required: false
+    default: '20'
+  safe-mode:
+    description: 'Restrict fuzzing to safe methods (GET, HEAD, OPTIONS)'
+    required: false
+    default: 'true'
+  output-sarif:
+    description: 'File path to export SARIF v2.1.0 code scanning report'
+    required: false
+    default: 'fuzzspec-results.sarif'
+  output-md:
+    description: 'File path to export GitHub Actions PR Markdown report'
+    required: false
+    default: 'fuzzspec-pr-summary.md'
+  output-junit:
+    description: 'File path to export JUnit XML test results'
+    required: false
+    default: 'fuzzspec-junit.xml'
+  fail-on-crash:
+    description: 'Fail the GitHub Actions workflow if any 500 crashes or critical anomalies are detected'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run FuzzSpec Test Harness
+      shell: bash
+      run: |
+        ARGS="run --target ${{ inputs.target }}"
+        if [ -n "${{ inputs.spec }}" ]; then
+          ARGS="$ARGS --spec ${{ inputs.spec }}"
+        fi
+        if [ "${{ inputs.auto-discover }}" = "true" ]; then
+          ARGS="$ARGS --auto-discover"
+        fi
+        if [ -n "${{ inputs.output-sarif }}" ]; then
+          ARGS="$ARGS --output-sarif ${{ inputs.output-sarif }}"
+        fi
+        if [ -n "${{ inputs.output-md }}" ]; then
+          ARGS="$ARGS --output-md ${{ inputs.output-md }}"
+        fi
+        if [ -n "${{ inputs.output-junit }}" ]; then
+          ARGS="$ARGS --output-junit ${{ inputs.output-junit }}"
+        fi
+        ARGS="$ARGS --concurrency ${{ inputs.concurrency }} --rps ${{ inputs.rps }} --safe-mode=${{ inputs.safe-mode }}"
+        
+        echo "Executing FuzzSpec: $ARGS"
+        fuzzspec $ARGS

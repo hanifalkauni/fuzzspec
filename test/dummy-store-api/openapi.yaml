@@ -1,0 +1,143 @@
+openapi: 3.1.0
+info:
+  title: Dummy Store REST API
+  description: A sample e-commerce API with intentional edge-case bugs for FuzzSpec testing.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8989
+paths:
+  /api/v1/products:
+    get:
+      summary: List all products
+      parameters:
+        - name: limit
+          in: query
+          description: Max items to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [electronics, books, apparel]
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid query parameters
+    post:
+      summary: Create a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProduct'
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '422':
+          description: Validation error
+
+  /api/v1/products/{id}:
+    get:
+      summary: Get product by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
+
+  /api/v1/orders:
+    post:
+      summary: Place an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      responses:
+        '201':
+          description: Order placed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Bad request
+        '422':
+          description: Unprocessable entity
+
+components:
+  schemas:
+    Product:
+      type: object
+      required: [id, title, price, in_stock]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        price:
+          type: number
+          minimum: 0.01
+        in_stock:
+          type: boolean
+    NewProduct:
+      type: object
+      required: [title, price]
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 100
+        price:
+          type: number
+          minimum: 0.01
+        category:
+          type: string
+    OrderRequest:
+      type: object
+      required: [product_id, quantity]
+      properties:
+        product_id:
+          type: integer
+          minimum: 1
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 50
+    OrderResponse:
+      type: object
+      required: [order_id, status, total_price]
+      properties:
+        order_id:
+          type: string
+        status:
+          type: string
+        total_price:
+          type: number

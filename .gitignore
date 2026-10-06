@@ -1,0 +1,49 @@
+# Binaries & Build Output
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+dist/
+build/
+fuzzspec
+fuzzspec-mcp
+
+
+# Environment & Credentials (CRITICAL SECURITY)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_rsa.pub
+id_ed25519
+credentials.json
+secrets.yaml
+secrets.json
+
+# Test Artifacts & Coverage
+coverage.out
+coverage.html
+coverage.txt
+test-results.*
+test-results/
+fuzz-results.*
+fuzz-junit.xml
+fuzz-summary.md
+.fuzzspec-cache/
+
+# IDE & OS Files
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.sublime-project
+*.sublime-workspace

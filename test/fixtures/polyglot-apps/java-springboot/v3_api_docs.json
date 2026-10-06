@@ -1,0 +1,29 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Spring Boot Sample API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/orders/{id}": {
+      "get": {
+        "summary": "Get Order by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order found"
+          }
+        }
+      }
+    }
+  }
+}

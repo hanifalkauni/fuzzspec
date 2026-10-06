@@ -1,0 +1,240 @@
+# FuzzSpec (`fuzzspec`)
+
+[![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://go.dev/)
+[![Polyglot](https://img.shields.io/badge/Language-Agnostic-orange.svg)](#-dukungan-framework-polyglot)
+[![Spec Format](https://img.shields.io/badge/Spec-YAML_%7C_JSON-blue.svg)](https://swagger.io/specification/)
+[![MCP](https://img.shields.io/badge/MCP-Protocol_Ready-8A2BE2.svg)](https://modelcontextprotocol.io/)
+[![Skills](https://img.shields.io/badge/Skills-Universal_Agent-green.svg)](https://skills.sh/)
+[![Version](https://img.shields.io/badge/Version-v1.0.0-green.svg)](./package.json)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
+
+**FuzzSpec** adalah Spec-to-Contract AI Testing Harness, pencegah crash 500 (*500 Crash Preventer*), dan Autonomous Self-Healing Skill Agent berbasis Go yang **100% Polyglot / Language-Agnostic** untuk REST API berbasis OpenAPI (YAML/JSON) di **seluruh bahasa pemrograman** (Go, Python, TypeScript/Node, Java, PHP, Rust, C#/.NET, Ruby).
+
+```mermaid
+flowchart LR
+    A[📐 Skema OpenAPI\nYAML / JSON] --> B[⚡ Hybrid Mutator\nBVA / EP / SQLi / AI]
+    B --> C[🚀 Concurrent Fuzzing\nRate-Limited Worker Pool]
+    C --> D[🎯 QA Oracles\n500 Crash & Stack Trace Scanner]
+    D -->|Deteksi Anomali| E[📝 cURL Reproducer &\nLaporan SARIF / JUnit]
+    E --> F[🤖 Patch Kode Agent]
+    F --> G[🔄 Zero-Token Replay]
+    G -->|Terverifikasi| H[✨ Lulus Quality Gate]
+```
+
+---
+
+## 🚀 Panduan Memulai Cepat (Quick Start)
+
+### 💬 Metode A: Chat AI Agent via MCP (Direkomendasikan — Semua AI IDE)
+
+Tambahkan FuzzSpec langsung ke AI IDE Anda (Cursor, Claude Desktop, Google Antigravity, Windsurf, Kiro, Continue.dev, dll.) melalui MCP:
+
+```json
+{
+  "mcpServers": {
+    "fuzzspec": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "github:hanifalkauni/fuzzspec",
+        "--mcp"
+      ]
+    }
+  }
+}
+```
+
+Sekarang cukup panggil asisten AI Anda secara alami di chat:
+> *"@fuzzspec tolong inspeksi spec OpenAPI kita dan lakukan fuzzing pada `/api/v1/orders` untuk mendeteksi potensi crash 500."*  
+> *(atau: "setelah saya perbaiki handler-nya, lakukan replay anomaly untuk memastikan bug sudah beres")*
+
+Agent akan secara otonom memanggil tools MCP native (`inspect_spec`, `fuzz_endpoint`, `replay_anomaly`, `scan_and_generate_spec`), mendeteksi runtime panic dan contract drift, memperbaiki kode backend, dan memverifikasi resolusi secara otomatis!
+
+---
+
+### 📄 Metode B: Universal Skill Agent & File Aturan (30+ AI Agents)
+
+Jika Anda ingin panduan prompt/aturan di workspace Anda tanpa background MCP daemon:
+
+#### 🌐 Opsi 1: Otomatis via skills.sh (30+ AI Agents)
+Install dengan satu perintah langsung ke Cursor, Claude Code, Windsurf, Copilot, Antigravity, atau Gemini CLI:
+```bash
+npx skills add hanifalkauni/fuzzspec
+```
+
+#### ⚡ Opsi 2: Injeksi Adapter Otomatis via CLI
+```bash
+# Injeksi ke IDE spesifik:
+npx -y github:hanifalkauni/fuzzspec init --ide cursor,claude,copilot,windsurf,antigravity,cline,kiro
+
+# Atau injeksi semua adapter ke repo saat ini:
+npx -y github:hanifalkauni/fuzzspec init
+```
+
+Perintah ini otomatis membuat:
+* 🟢 **Cursor**: `.cursor/rules/fuzzspec.mdc`
+* 🟣 **Claude Code**: `CLAUDE.md`
+* 🔵 **GitHub Copilot**: `.github/copilot-instructions.md`
+* 🌊 **Windsurf**: `.windsurfrules`
+* 🤖 **Antigravity**: `.agents/skills/fuzzspec/SKILL.md`
+* 🛠️ **Cline**: `.clinerules`
+* ⚡ **Kiro**: `.kiro/rules.md`
+
+---
+
+### 🖥️ Metode C: Binary CLI Berkecepatan Tinggi (Lokal & CI/CD)
+
+```bash
+# 1. Fuzzing lengkap dengan Auto-Discovery pada framework apa pun
+fuzzspec run --target http://localhost:8000 --auto-discover
+
+# 2. Fuzzing dengan file OpenAPI spesifik (YAML atau JSON)
+fuzzspec run \
+  --spec ./openapi.yaml \
+  --target http://localhost:8080 \
+  --concurrency 10 \
+  --rps 50 \
+  --output-sarif ./results.sarif \
+  --output-md ./results.md \
+  --output-junit ./results.xml
+
+# 3. Mode Replay Deterministik (0 Biaya Token AI)
+fuzzspec replay --target http://localhost:8080 --file ./results.json
+```
+
+---
+
+## 🌐 Dukungan Framework Polyglot
+
+`FuzzSpec` bekerja pada level **HTTP Contract**, sehingga tidak memerlukan instalasi SDK ke dalam aplikasi Anda:
+
+| Ekosistem | Framework Populer | Auto-Discovery Endpoints |
+|---|---|---|
+| 🐍 **Python** | FastAPI, Django Ninja, Flask | `/openapi.json`, `/docs` |
+| ☕ **Java / Kotlin** | Spring Boot, Quarkus, Micronaut | `/v3/api-docs`, `/v3/api-docs.yaml` |
+| 🟨 **Node.js / TS** | NestJS, Express, Fastify | `/api-json`, `/swagger.json` |
+| 🐘 **PHP** | Laravel (Scramble/L5), Symfony | `/docs/api.json`, `/api/documentation` |
+| 🔷 **C# / .NET** | ASP.NET Core (Swashbuckle) | `/swagger/v1/swagger.json` |
+| 🐹 **Go** | Gin, Echo, Fiber, Chi (Swag) | `/swagger/doc.json` |
+| 🦀 **Rust** | Actix-Web, Axum (Utoipa) | `/api-docs/openapi.json` |
+| 💎 **Ruby** | Ruby on Rails (Rswag) | `/api-docs/v1/swagger.yaml` |
+
+---
+
+## 🏛️ 12 Pilar QA Spec-to-Contract Fuzzing
+
+FuzzSpec dibangun di atas 12 pilar rekayasa untuk mencegah runtime panic 500, kebocoran data, dan menjamin kepatuhan kontrak API tanpa cacat:
+
+| # | Pilar QA | Mekanisme Arsitektur & Tujuan |
+|---|---|---|
+| **1** | **Spec-to-Contract Ingestion** | Mem-parsing OpenAPI 3.0/3.1 (YAML/JSON) dengan resolusi sirkular `$ref` dan normalisasi hierarki parameter. |
+| **2** | **Heuristic Rule Mutator** | Menerapkan Boundary Value Analysis (BVA), Equivalence Partitioning (EP), INT64 overflow, dan buffer string ekstrem. |
+| **3** | **Adversarial & Injection Probing** | Menyuntikkan string SQLi, Null byte (`\x00`), CRLF headers, Unicode homoglyph, dan type confusion payload. |
+| **4** | **AI Semantic Edge-Case Engine** | Memanfaatkan LLM (Gemini, OpenAI, Claude) untuk mutasi semantik domain spesifik dengan cache vektor lokal. |
+| **5** | **Bounded Concurrency Engine** | Worker pool goroutine paralel dengan rate limiter token-bucket (`--rps`) dan timeout ketat per request. |
+| **6** | **Safe Mode & Circuit Breaker** | Opsi `--safe-mode=true` membatasi pengujian hanya pada metode read-only (`GET`, `HEAD`, `OPTIONS`) untuk melindungi staging. |
+| **7** | **Multi-Layer 500 Crash Oracles** | Membedakan secara otomatis antara respon validasi 4xx yang tertangani vs fatal unhandled 5xx server crash. |
+| **8** | **Polyglot Stack Trace Leak Scanner** | Deteksi tanda tangan kebocoran stack trace runtime secara real-time di 8 bahasa (Go, Python, Node, Java, PHP, Rust, C#, Ruby). |
+| **9** | **Contract Drift Verification** | Memvalidasi respon server terhadap skema komponen OpenAPI untuk mendeteksi field yang hilang atau salah tipe data. |
+| **10** | **Zero-Token Deterministic Replay** | Menguji ulang payload anomali yang gagal di lingkungan lokal untuk memverifikasi perbaikan bug dengan **0 biaya token AI**. |
+| **11** | **Enterprise Diagnostics & Exporters** | Menghasilkan laporan SARIF v2.1.0 (GitHub Code Scanning), JUnit XML (CI/CD), Markdown PR comment, dan JSON diagnostik. |
+| **12** | **Autonomous Self-Healing Skill** | Native MCP tools dan adapter agen universal untuk Cursor, Claude, Antigravity, Copilot, Windsurf, Cline, dan Kiro. |
+
+---
+
+## 🛠️ Ringkasan Tools MCP
+
+| Nama Tool | Deskripsi | Argumen Utama |
+|---|---|---|
+| `inspect_spec` | Membedah pohon route OpenAPI, schema parameter, tipe, dan kode response. | `spec_path`, `target_url` |
+| `fuzz_endpoint` | Menjalankan fuzzing concurrent (boundary + AI) pada target live dan menghasilkan exact cURL reproducer. | `target_url`, `path`, `method`, `safe_mode`, `ai_enabled` |
+| `replay_anomaly` | Menguji ulang payload anomali yang gagal secara deterministik (**0 token AI**). | `target_url`, `report_file`, `vector` |
+| `scan_and_generate_spec` | Memindai route kode sumber dan membuat scaffold spesifikasi OpenAPI 3.1. | `project_path`, `output_file`, `output_format` |
+
+---
+
+## 🤖 Integrasi CI/CD GitHub Actions
+
+```yaml
+name: API Contract Fuzzing
+
+on: [push, pull_request]
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Start Target API
+        run: npm start & sleep 3
+
+      - name: Run FuzzSpec Quality Gate
+        uses: hanifalkauni/fuzzspec@main
+        with:
+          target: 'http://localhost:3000'
+          auto-discover: 'true'
+          output-sarif: 'fuzzspec-results.sarif'
+          output-md: 'fuzzspec-pr-summary.md'
+          output-junit: 'fuzzspec-junit.xml'
+
+      - name: Upload SARIF to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: fuzzspec-results.sarif
+```
+
+---
+
+## 🔒 Keamanan & Perlindungan Kredensial (Defense-in-Depth)
+
+FuzzSpec dirancang dengan arsitektur **Zero-Trust AI Security** untuk mencegah kebocoran kredensial atau token rahasia ke dalam riwayat chat AI, jendela konteks prompt, komentar PR CI/CD, maupun repositori publik.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                    5 LAPISAN PERLINDUNGAN KREDENSIAL FUZZSPEC                   │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ 1. Agent Boundary   : .cursorignore & .claudeignore mengisolasi .env & rahasia  │
+│ 2. Scanner Blacklist: Parser mengabaikan .git, .aws, .ssh, *.pem, credentials  │
+│ 3. RAM-Only Auth    : token_env membaca token dinamis hanya ke dalam RAM OS     │
+│ 4. Stream Redactor  : Otomatis menyensor Bearer token, API key, URI ke REDACTED │
+│ 5. Prompt Scrubbing : LLM HANYA menerima tipe skema, TANPA auth/token mentah    │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+| Lapisan | Mekanisme | Ruang Lingkup Perlindungan |
+|---|---|---|
+| **1. Pemblokir Konteks Agent** | [`.cursorignore`](./.cursorignore), [`.claudeignore`](./.claudeignore), [`.gitignore`](./.gitignore) | Memblokir IDE (Cursor, Claude Code, Copilot, Antigravity) dari mengindeks file lokal `.env*`, `credentials.json`, `*.key`, `*.pem`, atau direktori `.aws`. |
+| **2. Blacklist Scanner Engine** | `internal/mcp/tools_scan.go` & `internal/parser/discover.go` | Mesin pemindai route dan OpenAPI secara otomatis melompati file dan direktori sensitif. |
+| **3. Injeksi Token via RAM-Only** | `token_env: "MY_SECRET_KEY"` | Melarang penulisan token mentah di `fuzzspec.yaml`. Nilai token dibaca langsung dari variabel lingkungan OS saat penembakan HTTP berlangsung. |
+| **4. Multi-Pattern Stream Redactor** | `internal/reporter/sanitizer.go` | Semua laporan terminal, file SARIF, komentar PR, dan reproducer cURL menyensor token Bearer, API key cloud (OpenAI, Anthropic, AWS, GitHub), URI database, dan password menjadi `[REDACTED]`. |
+| **5. Isolasi Prompt LLM** | `internal/generator/ai_generator.go` | Prompt mutasi yang dikirim ke LLM (Gemini, OpenAI, Claude) **hanya berisi struktur skema OpenAPI** (tipe data, nama field, batasan nilai)—tidak pernah memuat header otentikasi atau data database produksi. |
+
+> [!NOTE]
+> **Catatan Operasional untuk cURL Reproducer:**  
+> Laporan anomali secara sengaja menghasilkan perintah cURL dengan header `Authorization: Bearer [REDACTED]`. Ketika Anda ingin memverifikasi reproduksi bug secara manual di terminal lokal, cukup ganti teks `[REDACTED]` dengan token aktif Anda.
+
+👉 **[Baca Kebijakan Keamanan, Model Ancaman & Checklist Lengkap (docs/SECURITY.id.md)](./docs/SECURITY.id.md)** *(atau [SECURITY.md (English)](./SECURITY.md))*
+
+---
+
+## 📑 Dokumentasi Terkait
+
+- 🛡️ **[Kebijakan Keamanan & Model Ancaman (docs/SECURITY.id.md)](./docs/SECURITY.id.md)** — Arsitektur Zero-Trust, mitigasi DoS/SSRF, dan checklist sebelum deploy.
+- 🛠️ **[Panduan Ekstensi Bahasa (docs/EXTENDING_LANGUAGES.md)](./docs/EXTENDING_LANGUAGES.md)** — Mendaftarkan framework kustom via YAML.
+- ⚙️ **[Contoh Konfigurasi (fuzzspec.example.yaml)](./fuzzspec.example.yaml)** — Template konfigurasi deklaratif.
+- 🧠 **[Playbook Agent Skill (SKILL.md)](./SKILL.md)** — Panduan prompt autonomous self-healing.
+
+---
+
+## 📜 Lisensi (License)
+
+```text
+SPDX-License-Identifier: Apache-2.0
+```
+
+Proyek ini dilisensikan di bawah **Apache License 2.0**. Lihat file [`LICENSE`](./LICENSE) untuk informasi selengkapnya.
+
+
+
