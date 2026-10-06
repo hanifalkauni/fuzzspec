@@ -25,19 +25,25 @@ flowchart LR
 
 ## 🚀 Instalasi & Panduan Memulai Cepat (Quick Start)
 
-### 📦 Opsi Instalasi
+### 📦 Opsi Instalasi & Matriks Prasyarat Sistem
 
-Pilih metode instalasi yang paling sesuai dengan lingkungan kerja Anda:
+| Metode Instalasi / Eksekusi | Kebutuhan Software / Prasyarat | Zero-Dependency? |
+|---|---|:---:|
+| **1. Standalone Binary (GitHub Releases)** | **Tidak ada** (Jalan langsung di Windows, Linux, macOS polos) | ✅ **100% Zero-Dependency** |
+| **2. Zero-Install via NPX** | **Node.js (v18+) & npm/npx** (Tidak butuh compiler Go) | ✅ Otomatis unduh binary native |
+| **3. Go Toolchain (`go install`)** | **Go 1.24+** dan Git terpasang | ⚙️ Kompilasi dari source code |
+| **4. AI IDE via MCP (Metode A)** | **AI IDE kompatibel MCP** (Cursor, Claude Desktop, Antigravity, Windsurf) | 🔌 Protokol JSON-RPC stdio |
+| **5. AI Semantic Mode (`--ai-provider`)** | `GEMINI_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | 💡 *Opsional* (Auto-fallback ke Heuristik) |
 
 ```bash
-# Opsi 1: Tanpa Instalasi via NPX (Sangat Direkomendasikan untuk uji cepat)
+# Opsi 1: Unduh Standalone Binary Multi-Arsitektur (Tanpa Dependensi)
+# Unduh dari GitHub Releases: https://github.com/hanifalkauni/fuzzspec/releases/latest
+
+# Opsi 2: Tanpa Instalasi via NPX (Memerlukan Node.js 18+)
 npx -y github:hanifalkauni/fuzzspec --help
 
-# Opsi 2: Instalasi via Go Toolchain
+# Opsi 3: Instalasi via Go Toolchain (Memerlukan Go 1.24+)
 go install github.com/fuzzspec/fuzzspec/cmd/fuzzspec@latest
-
-# Opsi 3: Unduh Standalone Binary Multi-Arsitektur (Linux, macOS, Windows)
-# Unduh dari GitHub Releases: https://github.com/hanifalkauni/fuzzspec/releases/latest
 ```
 
 ---

@@ -25,19 +25,25 @@ flowchart LR
 
 ## 🚀 Installation & Quick Start
 
-### 📦 Installation Options
+### 📦 Installation Options & Prerequisites
 
-Choose the installation method that best fits your workflow:
+| Installation / Execution Method | Software Requirements / Prerequisites | Zero-Dependency? |
+|---|---|:---:|
+| **1. Standalone Binary (GitHub Releases)** | **None** (Runs natively on clean Windows, Linux, macOS) | ✅ **100% Zero-Dependency** |
+| **2. Zero-Install via NPX** | **Node.js (v18+) & npm/npx** (No Go compiler required) | ✅ Downloads native binary |
+| **3. Go Toolchain (`go install`)** | **Go 1.24+** and Git installed | ⚙️ Source compilation |
+| **4. AI IDE via MCP (Method A)** | **MCP-compatible IDE** (Cursor, Claude Desktop, Antigravity, Windsurf) | 🔌 JSON-RPC stdio protocol |
+| **5. AI Semantic Mode (`--ai-provider`)** | `GEMINI_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | 💡 *Optional* (Auto-fallback to Heuristics) |
 
 ```bash
-# Option 1: Zero-Install via NPX (Recommended for quick runs)
+# Option 1: Pre-Built Multi-Arch Binaries (Zero Dependencies)
+# Download from GitHub Releases: https://github.com/hanifalkauni/fuzzspec/releases/latest
+
+# Option 2: Zero-Install via NPX (Requires Node.js 18+)
 npx -y github:hanifalkauni/fuzzspec --help
 
-# Option 2: Go Toolchain Install
+# Option 3: Go Toolchain Install (Requires Go 1.24+)
 go install github.com/fuzzspec/fuzzspec/cmd/fuzzspec@latest
-
-# Option 3: Pre-Built Multi-Arch Binaries (Linux, macOS, Windows)
-# Download from GitHub Releases: https://github.com/hanifalkauni/fuzzspec/releases/latest
 ```
 
 ---
