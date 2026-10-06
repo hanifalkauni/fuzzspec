@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -74,7 +75,7 @@ func TestCLI_Run_LiveServer(t *testing.T) {
 
 func TestCLI_AutoDiscover_And_Replay(t *testing.T) {
 	// 1. Live server that serves OpenAPI spec on /openapi.json and has a bug on invalid limit
-	isBugFixed := false
+	var isBugFixed atomic.Bool
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/openapi.json" {
 			w.Header().Set("Content-Type", "application/json")
@@ -105,7 +106,7 @@ func TestCLI_AutoDiscover_And_Replay(t *testing.T) {
 
 		if r.URL.Path == "/items" {
 			if r.URL.Query().Get("limit") == "9223372036854775907" {
-				if !isBugFixed {
+				if !isBugFixed.Load() {
 					w.WriteHeader(http.StatusInternalServerError)
 					w.Write([]byte("panic: overflow in /items"))
 					return
@@ -153,7 +154,7 @@ func TestCLI_AutoDiscover_And_Replay(t *testing.T) {
 	assert.Contains(t, string(replayFailOut), "REPLAY FAILED")
 
 	// 4. Fix bug and replay again (should pass with zero failures)
-	isBugFixed = true
+	isBugFixed.Store(true)
 	replayPassCmd := exec.Command(binPath, "replay",
 		"--file", jsonOut,
 		"--target", server.URL,
