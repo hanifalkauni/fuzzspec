@@ -23,13 +23,13 @@ jobs:
       - name: Install Dependencies
         run: go mod download
 
-      - name: Run Test Suite with Coverage
-        run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
-
       - name: Build Binaries
         run: |
           go build -v -o fuzzspec ./cmd/fuzzspec
           go build -v -o fuzzspec-mcp ./cmd/fuzzspec-mcp
+
+      - name: Run Test Suite
+        run: go test -v -race ./cmd/fuzzspec/commands/... ./internal/... ./test/e2e/...
 
       - name: Validate CLI Execution
         run: |

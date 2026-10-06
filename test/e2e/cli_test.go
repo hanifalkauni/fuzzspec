@@ -3,13 +3,32 @@ package e2e_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func getCLIPath(t *testing.T) string {
+	binName := "fuzzspec"
+	if runtime.GOOS == "windows" {
+		binName = "fuzzspec.exe"
+	}
+	binPath, err := filepath.Abs(filepath.Join("../../", binName))
+	require.NoError(t, err)
+
+	// If binary does not exist yet in root, build it automatically
+	if _, err := os.Stat(binPath); os.IsNotExist(err) {
+		cmd := exec.Command("go", "build", "-o", binPath, "../../cmd/fuzzspec")
+		out, err := cmd.CombinedOutput()
+		require.NoError(t, err, "Failed to compile test CLI binary: %s", string(out))
+	}
+	return binPath
+}
 
 func TestCLI_Run_LiveServer(t *testing.T) {
 	// Start a mock live server
@@ -24,8 +43,7 @@ func TestCLI_Run_LiveServer(t *testing.T) {
 	}))
 	defer server.Close()
 
-	binPath, err := filepath.Abs("../../fuzzspec.exe")
-	require.NoError(t, err)
+	binPath := getCLIPath(t)
 
 	specPath, err := filepath.Abs("../../test/fixtures/petstore.yaml")
 	require.NoError(t, err)
@@ -104,8 +122,7 @@ func TestCLI_AutoDiscover_And_Replay(t *testing.T) {
 	}))
 	defer server.Close()
 
-	binPath, err := filepath.Abs("../../fuzzspec.exe")
-	require.NoError(t, err)
+	binPath := getCLIPath(t)
 
 	tmpDir := t.TempDir()
 	jsonOut := filepath.Join(tmpDir, "autodiscover_report.json")
@@ -146,4 +163,3 @@ func TestCLI_AutoDiscover_And_Replay(t *testing.T) {
 	assert.Contains(t, string(replayPassOut), "RESOLVED")
 	assert.Contains(t, string(replayPassOut), "REPLAY PASSED")
 }
-
