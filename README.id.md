@@ -8,6 +8,10 @@
 [![Version](https://img.shields.io/badge/Version-v1.0.0-green.svg)](./package.json)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
 
+<p align="center">
+  <a href="./README.md">English</a> | <b>Bahasa Indonesia</b>
+</p>
+
 **FuzzSpec** adalah Spec-to-Contract AI Testing Harness, pencegah crash 500 (*500 Crash Preventer*), dan Autonomous Self-Healing Skill Agent berbasis Go yang **100% Polyglot / Language-Agnostic** untuk REST API berbasis OpenAPI (YAML/JSON) di **seluruh bahasa pemrograman** (Go, Python, TypeScript/Node, Java, PHP, Rust, C#/.NET, Ruby).
 
 ```mermaid

@@ -8,6 +8,10 @@
 [![Version](https://img.shields.io/badge/Version-v1.0.0-green.svg)](./package.json)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
 
+<p align="center">
+  <b>English</b> | <a href="./README.id.md">Bahasa Indonesia</a>
+</p>
+
 **FuzzSpec** is a language-agnostic, spec-to-contract AI testing harness, 500 crash preventer, and autonomous self-healing skill agent for OpenAPI (YAML/JSON) REST APIs across **all programming languages** (Go, Python, TypeScript/Node, Java, PHP, Rust, C#/.NET, Ruby).
 
 ```mermaid
