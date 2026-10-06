@@ -28,10 +28,10 @@ jobs:
 
       - name: Build Binaries
         run: |
-          go build -v -o bin/fuzzspec ./cmd/fuzzspec
-          go build -v -o bin/fuzzspec-mcp ./cmd/fuzzspec-mcp
+          go build -v -o fuzzspec ./cmd/fuzzspec
+          go build -v -o fuzzspec-mcp ./cmd/fuzzspec-mcp
 
       - name: Validate CLI Execution
         run: |
-          ./bin/fuzzspec version
-          ./bin/fuzzspec validate --spec ./test/fixtures/petstore.yaml
+          ./fuzzspec version
+          ./fuzzspec validate --spec ./test/fixtures/petstore.yaml
