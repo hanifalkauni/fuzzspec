@@ -23,11 +23,31 @@ flowchart LR
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Installation & Quick Start
+
+### 📦 Installation Options
+
+Choose the installation method that best fits your workflow:
+
+```bash
+# Option 1: Zero-Install via NPX (Recommended for quick runs)
+npx -y github:hanifalkauni/fuzzspec --help
+
+# Option 2: Go Toolchain Install
+go install github.com/fuzzspec/fuzzspec/cmd/fuzzspec@latest
+
+# Option 3: Pre-Built Multi-Arch Binaries (Linux, macOS, Windows)
+# Download from GitHub Releases: https://github.com/hanifalkauni/fuzzspec/releases/latest
+```
+
+---
 
 ### 💬 Method A: AI Agent Chat via MCP (Recommended — Any AI IDE)
 
-Add FuzzSpec directly to your AI IDE (Cursor, Claude Desktop, Google Antigravity, Windsurf, Kiro, Continue.dev, etc.) via MCP:
+FuzzSpec exposes native Model Context Protocol (MCP) JSON-RPC 2.0 tools, enabling your AI coding assistant (Cursor, Claude Desktop, Antigravity, Windsurf, Kiro, Continue.dev) to autonomously test endpoints and patch bugs.
+
+#### 🔧 IDE Configuration Snippet
+Add FuzzSpec to your IDE's MCP configuration file (e.g. `.cursor/mcp.json`, `claude_desktop_config.json`, or Antigravity settings):
 
 ```json
 {
@@ -44,20 +64,23 @@ Add FuzzSpec directly to your AI IDE (Cursor, Claude Desktop, Google Antigravity
 }
 ```
 
-Now prompt your AI assistant naturally in chat:
-> *"@fuzzspec inspect our OpenAPI spec and run focused fuzzing on `/api/v1/orders` to check for 500 crashes."*  
-> *(or: "after updating the handler, replay the failing payload to verify the fix")*
+#### 🛠️ Available MCP Tools & Practical Prompts
 
-The agent autonomously invokes the native MCP tools (`inspect_spec`, `fuzz_endpoint`, `replay_anomaly`, `scan_and_generate_spec`), detects unhandled runtime panics and contract drift, patches the backend code, and verifies resolution—**zero manual effort!**
+| MCP Tool | Purpose & Description | Example AI Chat Prompt |
+|---|---|---|
+| `inspect_spec` | Parses OpenAPI spec tree, schemas, types, and parameter constraints without sending HTTP calls. | *"@fuzzspec inspect `./openapi.yaml` and list all paths and potential circular `$ref` dependencies."* |
+| `fuzz_endpoint` | Executes concurrent boundary, adversarial, and AI fuzzing against a live server endpoint. Returns exact cURL reproducers. | *"@fuzzspec fuzz POST `/api/v1/orders` on `http://localhost:8080` with safe mode disabled and AI generation enabled."* |
+| `replay_anomaly` | Deterministically re-tests failing anomaly vectors against the server to verify bug fixes (**0 AI token cost**). | *"I've patched the integer overflow in `order_handler.go`. Replay vector `VEC-001` against `http://localhost:8080` to verify."* |
+| `scan_and_generate_spec` | Scans source code routes (Express, FastAPI, Gin, Spring) and scaffolds a clean OpenAPI 3.1 YAML/JSON file. | *"@fuzzspec scan our backend controllers in `./src/controllers` and generate an OpenAPI 3.1 specification at `./openapi.yaml`."* |
 
 ---
 
-### 📄 Method B: Universal Skill Agent & Rule File (30+ AI Agents)
+### 📄 Method B: Universal Skill Agent & Rule Adapter (30+ AI Agents)
 
 If you prefer pure prompt/rule guidance in your workspace without a background MCP daemon:
 
 #### 🌐 Option 1: Automatic via skills.sh (30+ AI Agents)
-Install with a single command directly into Cursor, Claude Code, Windsurf, Copilot, Antigravity, or Gemini CLI:
+Install directly into Cursor, Claude Code, Windsurf, Copilot, Antigravity, or Gemini CLI:
 ```bash
 npx skills add hanifalkauni/fuzzspec
 ```
@@ -80,45 +103,117 @@ This generates:
 * 🛠️ **Cline**: `.clinerules`
 * ⚡ **Kiro**: `.kiro/rules.md`
 
+#### 🤖 Example Prompt for Skill Agents:
+> *"Using the FuzzSpec skill, run an autonomous test-and-repair cycle against our local server at `http://localhost:8080`. Identify any 500 runtime crashes, inspect the offending handler code, apply a fix, and replay the payload to ensure quality gate passes."*
+
 ---
 
 ### 🖥️ Method C: Native High-Performance CLI (Local & CI/CD)
 
+FuzzSpec provides an intuitive, robust CLI for developer terminals and automated CI/CD pipelines.
+
+#### 1. `fuzzspec run` — Execute Comprehensive API Fuzzing
+
 ```bash
-# 1. Full Fuzzing with Auto-Discovery on any framework (e.g. FastAPI / Spring Boot)
+# Recipe 1: Auto-discovery mode (Probes FastAPI, Spring Boot, NestJS, Laravel, Gin)
 fuzzspec run --target http://localhost:8000 --auto-discover
 
-# 2. Explicit OpenAPI Spec Fuzzing (YAML or JSON)
+# Recipe 2: Explicit OpenAPI specification with custom concurrency and rate limits
+fuzzspec run \
+  --spec ./api/openapi.yaml \
+  --target http://localhost:8080 \
+  --concurrency 15 \
+  --rps 50 \
+  --timeout 5s
+
+# Recipe 3: State-changing endpoints (POST/PUT/DELETE) with custom auth token
 fuzzspec run \
   --spec ./openapi.yaml \
   --target http://localhost:8080 \
-  --concurrency 10 \
-  --rps 50 \
+  --safe-mode=false \
+  --header "Authorization: Bearer my-secret-token"
+
+# Recipe 4: CI/CD Quality Gate with full multi-format reports
+fuzzspec run \
+  --spec ./openapi.yaml \
+  --target http://localhost:8080 \
   --output-sarif ./results.sarif \
   --output-md ./results.md \
-  --output-junit ./results.xml
-
-# 3. Deterministic Replay Mode (Zero AI Cost)
-fuzzspec replay --target http://localhost:8080 --file ./results.json
-
-# 4. Validate Spec Readiness
-fuzzspec validate --spec ./openapi.yaml
-
-# 5. Generate Vectors Offline (Dry Run)
-fuzzspec generate --spec ./openapi.yaml
+  --output-junit ./results.xml \
+  --output-json ./results.json
 ```
 
-#### 📋 CLI Command & Flags Reference
+#### 2. `fuzzspec replay` — Deterministic Replay (Zero AI Cost)
+
+```bash
+# Replay all failed anomalies recorded in a previous run report
+fuzzspec replay --target http://localhost:8080 --file ./results.json
+
+# Replay a specific anomaly vector by ID
+fuzzspec replay --target http://localhost:8080 --file ./results.json --vector VEC-001
+```
+
+#### 3. `fuzzspec validate` — Validate OpenAPI Specification Readiness
+
+```bash
+# Validate local YAML or JSON spec
+fuzzspec validate --spec ./api/openapi.yaml
+
+# Validate live remote spec URL
+fuzzspec validate --spec https://api.example.com/openapi.json
+```
+
+#### 4. `fuzzspec generate` — Generate Test Vectors Offline (Dry Run)
+
+```bash
+# Generate heuristic boundary & adversarial vectors without sending HTTP calls
+fuzzspec generate --spec ./openapi.yaml --no-ai
+
+# Generate vectors enriched with AI semantic edge cases
+fuzzspec generate --spec ./openapi.yaml --ai-provider gemini
+```
+
+#### 5. `fuzzspec init` — Scaffold AI Agent Rules & Adapters
+
+```bash
+# Scaffold rules for all supported AI coding agents
+fuzzspec init
+
+# Scaffold only for selected IDEs
+fuzzspec init --ide cursor,claude,antigravity
+```
+
+#### 6. `fuzzspec --mcp` — Launch MCP Stdio Server
+
+```bash
+# Start JSON-RPC 2.0 stdio server for AI assistant connections
+fuzzspec --mcp
+```
+
+#### 7. Shell Autocompletion & Version Check
+
+```bash
+# Print version and build commit
+fuzzspec version
+
+# Setup shell completion (Bash, Zsh, Fish, PowerShell)
+fuzzspec completion powershell | Out-String | Invoke-Expression  # Windows PowerShell
+source <(fuzzspec completion bash)                              # Linux Bash
+source <(fuzzspec completion zsh)                               # macOS Zsh
+```
+
+#### 📋 Complete CLI Command & Flags Reference Table
 
 | Command | Description | Key Flags / Options |
 |---|---|---|
 | `fuzzspec validate` | Parses and validates OpenAPI 3.0/3.1 (YAML/JSON) specification readiness. | `--spec <file_or_url>` |
 | `fuzzspec generate` | Generates boundary, heuristic & adversarial test vectors without making HTTP calls (dry-run). | `--spec <file>`, `--no-ai`, `--ai-provider` |
-| `fuzzspec run` | Executes concurrent HTTP fuzzing with QA oracles, rate limiting, and multi-format reports. | `--target <url>`, `--spec <file>`, `--auto-discover`, `--concurrency <N>`, `--rps <N>`, `--safe-mode`, `--output-sarif`, `--output-md`, `--output-junit`, `--output-json` |
+| `fuzzspec run` | Executes concurrent HTTP fuzzing with QA oracles, rate limiting, and multi-format reports. | `--target <url>`, `--spec <file>`, `--auto-discover`, `--concurrency <N>`, `--rps <N>`, `--safe-mode`, `--header <H>`, `--output-sarif`, `--output-md`, `--output-junit`, `--output-json` |
 | `fuzzspec replay` | Deterministically re-executes failing anomaly payloads to verify bug fixes (**0 AI token cost**). | `--target <url>`, `--file <report.json>`, `--vector <id>` |
 | `fuzzspec init` | Automatically scaffolds AI agent rules and skill adapters into the repository. | `--ide cursor,claude,copilot,windsurf,antigravity,cline,kiro` |
 | `fuzzspec --mcp` | Starts the Model Context Protocol (MCP) JSON-RPC 2.0 stdio server for AI IDEs. | `--mcp` |
 | `fuzzspec version` | Prints FuzzSpec version and build info. | `--version`, `-v` |
+| `fuzzspec completion`| Generates shell completion script for Bash, Zsh, Fish, or PowerShell. | `bash`, `zsh`, `fish`, `powershell` |
 
 
 ---

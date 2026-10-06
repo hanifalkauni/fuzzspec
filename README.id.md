@@ -23,11 +23,31 @@ flowchart LR
 
 ---
 
-## 🚀 Panduan Memulai Cepat (Quick Start)
+## 🚀 Instalasi & Panduan Memulai Cepat (Quick Start)
+
+### 📦 Opsi Instalasi
+
+Pilih metode instalasi yang paling sesuai dengan lingkungan kerja Anda:
+
+```bash
+# Opsi 1: Tanpa Instalasi via NPX (Sangat Direkomendasikan untuk uji cepat)
+npx -y github:hanifalkauni/fuzzspec --help
+
+# Opsi 2: Instalasi via Go Toolchain
+go install github.com/fuzzspec/fuzzspec/cmd/fuzzspec@latest
+
+# Opsi 3: Unduh Standalone Binary Multi-Arsitektur (Linux, macOS, Windows)
+# Unduh dari GitHub Releases: https://github.com/hanifalkauni/fuzzspec/releases/latest
+```
+
+---
 
 ### 💬 Metode A: Chat AI Agent via MCP (Direkomendasikan — Semua AI IDE)
 
-Tambahkan FuzzSpec langsung ke AI IDE Anda (Cursor, Claude Desktop, Google Antigravity, Windsurf, Kiro, Continue.dev, dll.) melalui MCP:
+FuzzSpec menyediakan server bawaan Model Context Protocol (MCP) JSON-RPC 2.0, memungkinkan asisten coding AI Anda (Cursor, Claude Desktop, Antigravity, Windsurf, Kiro, Continue.dev) untuk menguji endpoint dan memperbaiki bug secara otonom.
+
+#### 🔧 Konfigurasi AI IDE
+Tambahkan FuzzSpec ke file konfigurasi MCP IDE Anda (misal `.cursor/mcp.json`, `claude_desktop_config.json`, atau pengaturan Antigravity):
 
 ```json
 {
@@ -44,11 +64,14 @@ Tambahkan FuzzSpec langsung ke AI IDE Anda (Cursor, Claude Desktop, Google Antig
 }
 ```
 
-Sekarang cukup panggil asisten AI Anda secara alami di chat:
-> *"@fuzzspec tolong inspeksi spec OpenAPI kita dan lakukan fuzzing pada `/api/v1/orders` untuk mendeteksi potensi crash 500."*  
-> *(atau: "setelah saya perbaiki handler-nya, lakukan replay anomaly untuk memastikan bug sudah beres")*
+#### 🛠️ Daftar Tools MCP & Contoh Prompt Praktis
 
-Agent akan secara otonom memanggil tools MCP native (`inspect_spec`, `fuzz_endpoint`, `replay_anomaly`, `scan_and_generate_spec`), mendeteksi runtime panic dan contract drift, memperbaiki kode backend, dan memverifikasi resolusi secara otomatis!
+| Tool MCP | Fungsi & Deskripsi | Contoh Prompt Chat AI |
+|---|---|---|
+| `inspect_spec` | Mem-parsing pohon spesifikasi OpenAPI, skema, tipe data, dan batasan parameter tanpa mengirim request HTTP. | *"@fuzzspec tolong inspeksi file `./openapi.yaml` dan daftarkan semua path serta potensi dependensi `$ref` sirkular."* |
+| `fuzz_endpoint` | Menjalankan fuzzing boundary, adversarial, dan AI secara concurrent ke endpoint server langsung. Mengembalikan curl reproducer. | *"@fuzzspec lakukan fuzzing pada POST `/api/v1/orders` di `http://localhost:8080` dengan safe mode nonaktif dan AI diaktifkan."* |
+| `replay_anomaly` | Menguji ulang vektor anomali yang gagal secara deterministik (**0 biaya token AI**). | *"Saya sudah memperbaiki integer overflow di `order_handler.go`. Tolong replay vektor `VEC-001` ke `http://localhost:8080` untuk verifikasi."* |
+| `scan_and_generate_spec` | Memindai rute kode sumber (Express, FastAPI, Gin, Spring) dan membuat draf spesifikasi OpenAPI 3.1 YAML/JSON. | *"@fuzzspec scan controller backend kita di `./src/controllers` dan buatkan file OpenAPI 3.1 di `./openapi.yaml`."* |
 
 ---
 
@@ -80,45 +103,117 @@ Perintah ini otomatis membuat:
 * 🛠️ **Cline**: `.clinerules`
 * ⚡ **Kiro**: `.kiro/rules.md`
 
+#### 🤖 Contoh Prompt untuk Skill Agent:
+> *"Dengan skill FuzzSpec, jalankan siklus pengujian otonom ke server lokal di `http://localhost:8080`. Temukan potensi crash 500, periksa kode handler yang bermasalah, terapkan perbaikan, dan lakukan replay untuk memastikan quality gate lulus."*
+
 ---
 
 ### 🖥️ Metode C: Binary CLI Berkecepatan Tinggi (Lokal & CI/CD)
 
+FuzzSpec menyediakan antarmuka CLI yang kaya dan tangguh untuk terminal developer maupun pipeline otomasi CI/CD.
+
+#### 1. `fuzzspec run` — Eksekusi Fuzzing API Menyeluruh
+
 ```bash
-# 1. Fuzzing lengkap dengan Auto-Discovery pada framework apa pun
+# Resep 1: Mode Auto-discovery (Mendeteksi FastAPI, Spring Boot, NestJS, Laravel, Gin)
 fuzzspec run --target http://localhost:8000 --auto-discover
 
-# 2. Fuzzing dengan file OpenAPI spesifik (YAML atau JSON)
+# Resep 2: Spesifikasi OpenAPI eksplisit dengan pengaturan konkurensi dan limit laju request
+fuzzspec run \
+  --spec ./api/openapi.yaml \
+  --target http://localhost:8080 \
+  --concurrency 15 \
+  --rps 50 \
+  --timeout 5s
+
+# Resep 3: Endpoint pengubah data (POST/PUT/DELETE) dengan custom token autentikasi
 fuzzspec run \
   --spec ./openapi.yaml \
   --target http://localhost:8080 \
-  --concurrency 10 \
-  --rps 50 \
+  --safe-mode=false \
+  --header "Authorization: Bearer my-secret-token"
+
+# Resep 4: Quality Gate CI/CD dengan ekspor laporan multi-format
+fuzzspec run \
+  --spec ./openapi.yaml \
+  --target http://localhost:8080 \
   --output-sarif ./results.sarif \
   --output-md ./results.md \
-  --output-junit ./results.xml
-
-# 3. Mode Replay Deterministik (0 Biaya Token AI)
-fuzzspec replay --target http://localhost:8080 --file ./results.json
-
-# 4. Validasi Kesiapan Skema OpenAPI
-fuzzspec validate --spec ./openapi.yaml
-
-# 5. Generate Vektor Mutasi Offline (Dry Run)
-fuzzspec generate --spec ./openapi.yaml
+  --output-junit ./results.xml \
+  --output-json ./results.json
 ```
 
-#### 📋 Referensi Perintah & Opsi Flag CLI
+#### 2. `fuzzspec replay` — Replay Deterministik (0 Biaya AI)
+
+```bash
+# Menguji ulang seluruh anomali gagal yang tercatat di laporan sebelumnya
+fuzzspec replay --target http://localhost:8080 --file ./results.json
+
+# Menguji ulang satu vektor anomali tertentu berdasarkan ID
+fuzzspec replay --target http://localhost:8080 --file ./results.json --vector VEC-001
+```
+
+#### 3. `fuzzspec validate` — Validasi Kesiapan Spesifikasi OpenAPI
+
+```bash
+# Validasi file YAML atau JSON lokal
+fuzzspec validate --spec ./api/openapi.yaml
+
+# Validasi URL spesifikasi online/remote
+fuzzspec validate --spec https://api.example.com/openapi.json
+```
+
+#### 4. `fuzzspec generate` — Generate Vektor Uji Offline (Dry Run)
+
+```bash
+# Generate vektor mutasi heuristik & boundary tanpa mengirim panggilan HTTP
+fuzzspec generate --spec ./openapi.yaml --no-ai
+
+# Generate vektor yang diperkaya dengan skenario semantik AI
+fuzzspec generate --spec ./openapi.yaml --ai-provider gemini
+```
+
+#### 5. `fuzzspec init` — Injeksi Aturan & Adapter Skill AI Agent
+
+```bash
+# Injeksi aturan untuk seluruh AI coding agent yang didukung
+fuzzspec init
+
+# Injeksi hanya untuk IDE pilihan
+fuzzspec init --ide cursor,claude,antigravity
+```
+
+#### 6. `fuzzspec --mcp` — Jalankan Server MCP Stdio
+
+```bash
+# Menjalankan server stdio JSON-RPC 2.0 untuk koneksi asisten AI
+fuzzspec --mcp
+```
+
+#### 7. Autocompletion Shell & Cek Versi
+
+```bash
+# Cetak versi dan commit build
+fuzzspec version
+
+# Setup shell completion (Bash, Zsh, Fish, PowerShell)
+fuzzspec completion powershell | Out-String | Invoke-Expression  # Windows PowerShell
+source <(fuzzspec completion bash)                              # Linux Bash
+source <(fuzzspec completion zsh)                               # macOS Zsh
+```
+
+#### 📋 Referensi Lengkap Perintah & Opsi Flag CLI
 
 | Perintah | Deskripsi | Opsi / Flag Utama |
 |---|---|---|
 | `fuzzspec validate` | Mem-parsing dan memvalidasi kesiapan spesifikasi OpenAPI 3.0/3.1 (YAML/JSON). | `--spec <file_or_url>` |
 | `fuzzspec generate` | Menghasilkan vektor mutasi boundary & adversarial tanpa mengirim request HTTP (dry-run). | `--spec <file>`, `--no-ai`, `--ai-provider` |
-| `fuzzspec run` | Menjalankan fuzzing HTTP concurrent dengan QA oracles, pembatas laju (rate limiter), dan laporan multi-format. | `--target <url>`, `--spec <file>`, `--auto-discover`, `--concurrency <N>`, `--rps <N>`, `--safe-mode`, `--output-sarif`, `--output-md`, `--output-junit`, `--output-json` |
+| `fuzzspec run` | Menjalankan fuzzing HTTP concurrent dengan QA oracles, rate limiter, dan laporan multi-format. | `--target <url>`, `--spec <file>`, `--auto-discover`, `--concurrency <N>`, `--rps <N>`, `--safe-mode`, `--header <H>`, `--output-sarif`, `--output-md`, `--output-junit`, `--output-json` |
 | `fuzzspec replay` | Menguji ulang payload anomali yang gagal secara deterministik (**0 biaya token AI**). | `--target <url>`, `--file <report.json>`, `--vector <id>` |
 | `fuzzspec init` | Menginjeksi aturan (*rules*) dan adapter skill AI agent ke repositori lokal. | `--ide cursor,claude,copilot,windsurf,antigravity,cline,kiro` |
 | `fuzzspec --mcp` | Menjalankan server stdio JSON-RPC 2.0 Model Context Protocol (MCP) untuk AI IDE. | `--mcp` |
 | `fuzzspec version` | Menampilkan versi rilis dan info build FuzzSpec. | `--version`, `-v` |
+| `fuzzspec completion`| Membuat script autocompletion shell untuk Bash, Zsh, Fish, atau PowerShell. | `bash`, `zsh`, `fish`, `powershell` |
 
 
 ---
