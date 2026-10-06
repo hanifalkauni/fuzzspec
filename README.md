@@ -234,13 +234,106 @@ FuzzSpec is engineered with **Zero-Trust AI Security** to prevent credential lea
 > **Operational Trade-off on cURL Reproducers:**  
 > Bug reports intentionally generate cURL commands with `Authorization: Bearer [REDACTED]`. When manually verifying a reproduction in your local terminal, simply replace `[REDACTED]` with your active test token.
 
-👉 **[Read Full Security Policy, Threat Model & Checklist (SECURITY.md)](./SECURITY.md)**
+---
+
+## 🔑 Environment Variables Reference
+
+FuzzSpec reads environment variables dynamically at execution time with zero hardcoding:
+
+| Variable | Purpose & Description | Required / Optional |
+|---|---|:---:|
+| `GEMINI_API_KEY` | Google Gemini API key for AI-assisted semantic edge-case fuzzing. | Optional (Default: Heuristic) |
+| `OPENAI_API_KEY` | OpenAI API key for GPT-4o / GPT-4o-mini fuzzing vectors. | Optional |
+| `ANTHROPIC_API_KEY` | Anthropic Claude API key for Claude 3.5 Sonnet mutations. | Optional |
+| `<CUSTOM_TOKEN_ENV>` | Target API authentication token referenced dynamically via `token_env`. | As configured |
+
+---
+
+## ⚙️ Declarative Configuration (`fuzzspec.yaml`)
+
+You can customize all aspects of execution, rate limiting, and reporting via a declarative `fuzzspec.yaml` file:
+
+```yaml
+version: "1"
+target: "http://localhost:8000"
+spec: "./api/openapi.yaml"     # Omit if using auto_discover
+auto_discover: true            # Automatically probes FastAPI, Spring, NestJS, Laravel
+
+execution:
+  concurrency: 15              # Parallel worker threads
+  rps: 50                      # Token-bucket rate limiter
+  timeout: "5s"                # Per-request timeout
+  retries: 2
+  safe_mode: true              # true: only GET/HEAD/OPTIONS; false: allow POST/PUT/DELETE
+
+authentication:
+  type: "bearer"
+  token_env: "API_TEST_TOKEN"  # Dynamically read from RAM / OS env
+  headers:
+    X-Tenant-ID: "qa-sandbox-01"
+
+filtering:
+  include_paths: ["/v1/**"]
+  exclude_paths: ["/v1/admin/purge"]
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+
+ai:
+  enabled: true
+  provider: "gemini"           # gemini | openai | anthropic | local
+  model: "gemini-1.5-flash"
+  cache_vectors: true
+
+oracles:
+  fail_on_5xx: true
+  fail_on_schema_drift: true
+  scan_info_leak: true
+  latency_threshold_ms: 3000
+
+reporting:
+  terminal: true
+  sarif: "./fuzz-results.sarif"
+  junit: "./fuzz-junit.xml"
+  markdown: "./fuzz-summary.md"
+  json: "./fuzz-results.json"
+  sanitize_pii: true
+```
+
+---
+
+## ❓ FAQ & Troubleshooting
+
+<details>
+<summary><b>1. What if my API does not have an existing OpenAPI / Swagger specification?</b></summary>
+
+You don't need to write one manually! You have two automatic options:
+* **Option A:** Use the MCP tool `scan_and_generate_spec` in your AI IDE chat to scan your route source code and scaffold a valid OpenAPI 3.1 file.
+* **Option B:** Run `fuzzspec run --target http://localhost:8080 --auto-discover`. FuzzSpec will automatically probe standard documentation endpoints (`/openapi.json`, `/v3/api-docs`, `/api-json`, `/swagger/doc.json`, `/docs/api.json`).
+</details>
+
+<details>
+<summary><b>2. Why do cURL reproduction commands contain <code>Authorization: Bearer [REDACTED]</code>?</b></summary>
+
+This is an intentional feature of **Layer 4 (Zero-Trust Output Sanitizer)**. It guarantees that if you copy-paste bug reports into public GitHub Issues, Slack channels, or PR reviews, your active tokens are never exposed. Simply replace `[REDACTED]` with your live test token when manually replaying in your terminal.
+</details>
+
+<details>
+<summary><b>3. How do I fuzz destructive endpoints (POST, PUT, DELETE) if they are skipped?</b></summary>
+
+By default, FuzzSpec runs in `--safe-mode=true` to protect developer environments. To test state-changing endpoints, pass `--safe-mode=false` in the CLI or set `safe_mode: false` in `fuzzspec.yaml`. **Always ensure you are targeting a disposable test or staging database.**
+</details>
+
+<details>
+<summary><b>4. How does deterministic replay work with 0 AI token cost?</b></summary>
+
+When `fuzz_endpoint` or `fuzzspec run` discovers an anomaly, it records the exact HTTP request vector into `results.json`. Running `fuzzspec replay --file results.json` re-executes the exact offending payload directly against the server, verifying your bug fix without invoking external LLMs.
+</details>
 
 ---
 
 ## 📑 Additional Documentation
 
 - 🛡️ **[Security Policy & Threat Model (SECURITY.md)](./SECURITY.md)** — Zero-Trust architecture, threat modeling & pre-flight checklist.
+- 🤝 **[Contributing Guide (CONTRIBUTING.md)](./CONTRIBUTING.md)** — Developer setup, running tests & pull request guidelines.
 - 🛠️ **[Custom Language Guide (docs/EXTENDING_LANGUAGES.md)](./docs/EXTENDING_LANGUAGES.md)** — Register custom frameworks via YAML.
 - ⚙️ **[Example Configuration (fuzzspec.example.yaml)](./fuzzspec.example.yaml)** — Declarative YAML configuration template.
 - 🧠 **[Agent Skill Playbook (SKILL.md)](./SKILL.md)** — Autonomous self-healing prompt playbook.
@@ -254,6 +347,7 @@ SPDX-License-Identifier: Apache-2.0
 ```
 
 This project is licensed under the **Apache License 2.0**. See the [`LICENSE`](./LICENSE) file for details.
+
 
 
 

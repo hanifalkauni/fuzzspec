@@ -234,13 +234,106 @@ FuzzSpec dirancang dengan arsitektur **Zero-Trust AI Security** untuk mencegah k
 > **Catatan Operasional untuk cURL Reproducer:**  
 > Laporan anomali secara sengaja menghasilkan perintah cURL dengan header `Authorization: Bearer [REDACTED]`. Ketika Anda ingin memverifikasi reproduksi bug secara manual di terminal lokal, cukup ganti teks `[REDACTED]` dengan token aktif Anda.
 
-👉 **[Baca Kebijakan Keamanan, Model Ancaman & Checklist Lengkap (docs/SECURITY.id.md)](./docs/SECURITY.id.md)** *(atau [SECURITY.md (English)](./SECURITY.md))*
+---
+
+## 🔑 Referensi Variabel Lingkungan (Environment Variables)
+
+FuzzSpec membaca environment variable secara dinamis pada saat eksekusi tanpa hardcoding token:
+
+| Variabel | Tujuan & Deskripsi | Wajib / Opsional |
+|---|---|:---:|
+| `GEMINI_API_KEY` | Kunci API Google Gemini untuk pengujian mutasi semantik domain AI. | Opsional (Default: Heuristik) |
+| `OPENAI_API_KEY` | Kunci API OpenAI untuk model GPT-4o / GPT-4o-mini. | Opsional |
+| `ANTHROPIC_API_KEY` | Kunci API Anthropic Claude untuk model Claude 3.5 Sonnet. | Opsional |
+| `<CUSTOM_TOKEN_ENV>` | Token otentikasi API target Anda sesuai konfigurasi `token_env`. | Sesuai konfigurasi |
+
+---
+
+## ⚙️ Arsitektur Konfigurasi Deklaratif (`fuzzspec.yaml`)
+
+Anda dapat menyesuaikan seluruh aspek eksekusi, pembatas laju, dan format laporan via file `fuzzspec.yaml`:
+
+```yaml
+version: "1"
+target: "http://localhost:8000"
+spec: "./api/openapi.yaml"     # Kosongkan jika menggunakan auto_discover
+auto_discover: true            # Otomatis probe FastAPI, Spring Boot, NestJS, Laravel
+
+execution:
+  concurrency: 15              # Jumlah worker goroutine paralel
+  rps: 50                      # Rate limiter algoritma token-bucket
+  timeout: "5s"                # Batas timeout per request
+  retries: 2
+  safe_mode: true              # true: hanya GET/HEAD/OPTIONS; false: izinkan POST/PUT/DELETE
+
+authentication:
+  type: "bearer"
+  token_env: "API_TEST_TOKEN"  # Dibaca dinamis dari RAM / Environment OS
+  headers:
+    X-Tenant-ID: "qa-sandbox-01"
+
+filtering:
+  include_paths: ["/v1/**"]
+  exclude_paths: ["/v1/admin/purge"]
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+
+ai:
+  enabled: true
+  provider: "gemini"           # gemini | openai | anthropic | local
+  model: "gemini-1.5-flash"
+  cache_vectors: true
+
+oracles:
+  fail_on_5xx: true
+  fail_on_schema_drift: true
+  scan_info_leak: true
+  latency_threshold_ms: 3000
+
+reporting:
+  terminal: true
+  sarif: "./fuzz-results.sarif"
+  junit: "./fuzz-junit.xml"
+  markdown: "./fuzz-summary.md"
+  json: "./fuzz-results.json"
+  sanitize_pii: true
+```
+
+---
+
+## ❓ FAQ & Tanya Jawab Teknis
+
+<details>
+<summary><b>1. Bagaimana jika aplikasi saya belum memiliki file OpenAPI / Swagger?</b></summary>
+
+Anda tidak perlu membuatnya secara manual! Ada dua opsi otomatis:
+* **Opsi A:** Gunakan MCP tool `scan_and_generate_spec` pada AI IDE chat Anda untuk memindai kode sumber route dan menghasilkan file OpenAPI 3.1 yang valid.
+* **Opsi B:** Jalankan `fuzzspec run --target http://localhost:8080 --auto-discover`. FuzzSpec akan secara otomatis memindai endpoint dokumentasi bawaan (`/openapi.json`, `/v3/api-docs`, `/api-json`, `/swagger/doc.json`, `/docs/api.json`).
+</details>
+
+<details>
+<summary><b>2. Mengapa perintah reproduksi cURL berisi <code>Authorization: Bearer [REDACTED]</code>?</b></summary>
+
+Ini adalah fitur sengaja dari **Lapisan 4 (Zero-Trust Output Sanitizer)** untuk memastikan token Anda tidak terekspos jika laporan bug disalin ke GitHub Issues publik, Slack, atau review PR. Cukup ganti teks `[REDACTED]` dengan token aktif Anda saat mereproduksi di terminal lokal.
+</details>
+
+<details>
+<summary><b>3. Bagaimana cara menguji endpoint destruktif (POST, PUT, DELETE) jika dilewati?</b></summary>
+
+Secara default, FuzzSpec berjalan dalam mode `--safe-mode=true` untuk melindungi lingkungan pengembang. Untuk menguji endpoint pengubah state, tambahkan flag `--safe-mode=false` di CLI atau atur `safe_mode: false` di `fuzzspec.yaml`. **Pastikan Anda selalu menargetkan database pengujian (test/staging).**
+</details>
+
+<details>
+<summary><b>4. Bagaimana cara kerja replay deterministik dengan 0 biaya token AI?</b></summary>
+
+Ketika `fuzz_endpoint` atau `fuzzspec run` menemukan anomali, vektor request HTTP persis dicatat ke dalam file `results.json`. Menjalankan `fuzzspec replay --file results.json` akan menembakkan kembali payload yang gagal tersebut langsung ke server tanpa memanggil API LLM pihak ketiga.
+</details>
 
 ---
 
 ## 📑 Dokumentasi Terkait
 
 - 🛡️ **[Kebijakan Keamanan & Model Ancaman (docs/SECURITY.id.md)](./docs/SECURITY.id.md)** — Arsitektur Zero-Trust, mitigasi DoS/SSRF, dan checklist sebelum deploy.
+- 🤝 **[Panduan Kontribusi (docs/CONTRIBUTING.id.md)](./docs/CONTRIBUTING.id.md)** — Setup pengembang, menjalankan test suite & pedoman pull request.
 - 🛠️ **[Panduan Ekstensi Bahasa (docs/EXTENDING_LANGUAGES.md)](./docs/EXTENDING_LANGUAGES.md)** — Mendaftarkan framework kustom via YAML.
 - ⚙️ **[Contoh Konfigurasi (fuzzspec.example.yaml)](./fuzzspec.example.yaml)** — Template konfigurasi deklaratif.
 - 🧠 **[Playbook Agent Skill (SKILL.md)](./SKILL.md)** — Panduan prompt autonomous self-healing.
@@ -254,6 +347,7 @@ SPDX-License-Identifier: Apache-2.0
 ```
 
 Proyek ini dilisensikan di bawah **Apache License 2.0**. Lihat file [`LICENSE`](./LICENSE) untuk informasi selengkapnya.
+
 
 
 
